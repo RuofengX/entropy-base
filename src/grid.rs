@@ -3,7 +3,6 @@ use std::fmt;
 use rand::{rngs::SmallRng, Rng, RngCore, SeedableRng};
 use serde::{de, ser::SerializeTupleStruct, Deserialize, Serialize, Serializer};
 
-
 pub const NODE_MAX_SIZE: usize = 16 * 1024; // 16KiB
 
 ///         ^UP
@@ -119,8 +118,8 @@ impl NodeData {
             .map(|cell| cell.to_be_bytes()[0])
             .collect()
     }
-    pub fn from_bytes(value: Vec<u8>) -> Self {
-        Self(value.into_iter().map(|b| i8::from_be_bytes([b])).collect())
+    pub fn from_bytes(value: impl AsRef<[u8]>) -> Self {
+        value.into()
     }
 }
 
@@ -130,9 +129,10 @@ impl Into<Vec<u8>> for NodeData {
         self.to_bytes()
     }
 }
-impl From<Vec<u8>> for NodeData {
-    fn from(value: Vec<u8>) -> Self {
-        Self::from_bytes(value)
+
+impl<T: AsRef<[u8]>> From<T> for NodeData {
+    fn from(value: T) -> Self {
+        Self(value.as_ref().iter().map(|b| i8::from_be_bytes([*b])).collect())
     }
 }
 
@@ -142,18 +142,7 @@ pub struct Node {
     pub data: NodeData,
 }
 
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    Serialize,
-    Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct FlatID(
     #[serde(
         serialize_with = "crate::grid::ser_flat",

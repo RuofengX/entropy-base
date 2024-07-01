@@ -8,5 +8,6 @@ license = "GPL-3.0"
 [lib]
 
 [dependencies]
+bytes = "1.6.0"
 rand = { version = "0.8.5", features = ["small_rng"] }
 serde = { version = "1.0.203", features = ["derive"] }
