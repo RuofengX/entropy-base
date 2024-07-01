@@ -1,6 +1,6 @@
 [package]
 name = "entropy-base"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 description = "entropy-game shared library"
 license = "GPL-3.0"
