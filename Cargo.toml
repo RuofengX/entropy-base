@@ -6,6 +6,5 @@ edition = "2021"
 [lib]
 
 [dependencies]
-pg-embed = "0.7.1"
 rand = { version = "0.8.5", features = ["small_rng"] }
 serde = { version = "1.0.203", features = ["derive"] }
