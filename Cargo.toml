@@ -1,6 +1,6 @@
 [package]
 name = "entropy-base"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 description = "entropy-game shared library"
 license = "GPL-3.0"
@@ -9,5 +9,6 @@ license = "GPL-3.0"
 
 [dependencies]
 bytes = "1.6.0"
+ordered-float = "4.2.0"
 rand = { version = "0.8.5", features = ["small_rng"] }
 serde = { version = "1.0.203", features = ["derive"] }
