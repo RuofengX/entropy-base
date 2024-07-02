@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{fmt, ops::Deref};
 
 use rand::{rngs::SmallRng, Rng, RngCore, SeedableRng};
 use serde::{de, ser::SerializeTupleStruct, Deserialize, Serialize, Serializer};
@@ -41,25 +41,25 @@ pub const ALLOWED_NAVI: [(i16, i16); 4] = [(-1, 0), (1, 0), (0, -1), (0, 1)];
 #[derive(
     Debug, Default, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
-pub struct NodeID(pub i16, pub i16);
+pub struct NodeID((i16, i16));
 impl NodeID {
-    pub const UP_LEFT: Self = NodeID(i16::MIN, i16::MAX);
-    pub const UP_MIDDLE: Self = NodeID(0, i16::MAX);
-    pub const UP_RIGHT: Self = NodeID(i16::MAX, i16::MAX);
-    pub const LEFT_MIDDLE: Self = NodeID(i16::MIN, 0);
-    pub const SITU: Self = NodeID(0, 0);
-    pub const ORIGIN: Self = NodeID(0, 0);
-    pub const RIGHT_MIDDLE: Self = NodeID(i16::MAX, 0);
-    pub const DOWN_LEFT: Self = NodeID(i16::MIN, i16::MIN);
-    pub const DOWN_MIDDLE: Self = NodeID(0, i16::MIN);
-    pub const DOWN_RIGHT: Self = NodeID(i16::MAX, i16::MIN);
+    pub const UP_LEFT: Self = NodeID((i16::MIN, i16::MAX));
+    pub const UP_MIDDLE: Self = NodeID((0, i16::MAX));
+    pub const UP_RIGHT: Self = NodeID((i16::MAX, i16::MAX));
+    pub const LEFT_MIDDLE: Self = NodeID((i16::MIN, 0));
+    pub const SITU: Self = NodeID((0, 0));
+    pub const ORIGIN: Self = NodeID((0, 0));
+    pub const RIGHT_MIDDLE: Self = NodeID((i16::MAX, 0));
+    pub const DOWN_LEFT: Self = NodeID((i16::MIN, i16::MIN));
+    pub const DOWN_MIDDLE: Self = NodeID((0, i16::MIN));
+    pub const DOWN_RIGHT: Self = NodeID((i16::MAX, i16::MIN));
 
     pub fn from_i32(value: i32) -> Self {
         FlatID::from_i32(value).into_node_id()
     }
 
     pub fn from_xy(x: i16, y: i16) -> Self {
-        Self(x, y)
+        Self((x, y))
     }
 
     pub fn into_tuple(self) -> (i16, i16) {
@@ -75,20 +75,27 @@ impl NodeID {
     }
 
     pub fn navi_to(&mut self, to: navi::Direction) -> NodeID {
-        self.0 = self.0.wrapping_add(to.0);
-        self.1 = self.1.wrapping_add(to.1);
+        self.0 .0 = self.0 .0.wrapping_add(to.0);
+        self.0 .1 = self.0 .1.wrapping_add(to.1);
         self.clone()
     }
 }
 
 impl From<(i16, i16)> for NodeID {
     fn from(value: (i16, i16)) -> Self {
-        NodeID(value.0, value.1)
+        NodeID((value.0, value.1))
     }
 }
 impl Into<(i16, i16)> for NodeID {
     fn into(self) -> (i16, i16) {
-        (self.0, self.1)
+        self.0
+    }
+}
+impl Deref for NodeID {
+    type Target = (i16, i16);
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
@@ -132,7 +139,13 @@ impl Into<Vec<u8>> for NodeData {
 
 impl<T: AsRef<[u8]>> From<T> for NodeData {
     fn from(value: T) -> Self {
-        Self(value.as_ref().iter().map(|b| i8::from_be_bytes([*b])).collect())
+        Self(
+            value
+                .as_ref()
+                .iter()
+                .map(|b| i8::from_be_bytes([*b]))
+                .collect(),
+        )
     }
 }
 
@@ -140,6 +153,14 @@ impl<T: AsRef<[u8]>> From<T> for NodeData {
 pub struct Node {
     pub id: NodeID,
     pub data: NodeData,
+}
+impl Node {
+    pub fn new(id: impl AsRef<(i16, i16)>, data: impl AsRef<[u8]>) -> Self {
+        Node {
+            id: NodeID(id.as_ref().clone()),
+            data: NodeData::from(data),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -180,8 +201,8 @@ impl Into<i32> for FlatID {
 }
 impl From<NodeID> for FlatID {
     fn from(value: NodeID) -> Self {
-        let [x1, x2] = value.0.to_be_bytes();
-        let [y1, y2] = value.1.to_be_bytes();
+        let [x1, x2] = value.0 .0.to_be_bytes();
+        let [y1, y2] = value.0 .1.to_be_bytes();
         let f = i32::from_be_bytes([x1, x2, y1, y2]);
         FlatID(f)
     }
