@@ -4,11 +4,11 @@ use std::fmt;
 
 pub const NODE_MAX_SIZE: usize = 16 * 1024; // 16KiB
 
-///         ^UP
-///         |
-/// LEFT <-   -> RIGHT
-///         |
-///         vDOWN
+//         ^UP
+//         |
+// LEFT <-   -> RIGHT
+//         |
+//         vDOWN
 pub mod navi {
     pub type Direction = (i16, i16);
     pub const SITU: (i16, i16) = (0, 0);
@@ -142,6 +142,12 @@ impl<T: AsRef<[u8]>> From<T> for NodeData {
                 .map(|b| i8::from_be_bytes([*b]))
                 .collect(),
         )
+    }
+}
+
+impl AsRef<Vec<i8>> for NodeData {
+    fn as_ref(&self) -> &Vec<i8> {
+        &self.0
     }
 }
 
