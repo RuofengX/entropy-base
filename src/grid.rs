@@ -1,6 +1,6 @@
 use rand::{rngs::SmallRng, Rng, RngCore, SeedableRng};
 use serde::{de, ser::SerializeTupleStruct, Deserialize, Serialize, Serializer};
-use std::fmt;
+use std::{fmt, ops::Deref};
 
 pub const NODE_MAX_SIZE: usize = 16 * 1024; // 16KiB
 
@@ -145,8 +145,10 @@ impl<T: AsRef<[u8]>> From<T> for NodeData {
     }
 }
 
-impl AsRef<Vec<i8>> for NodeData {
-    fn as_ref(&self) -> &Vec<i8> {
+impl Deref for NodeData {
+    type Target = Vec<i8>;
+
+    fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
